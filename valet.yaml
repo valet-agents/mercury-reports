@@ -1,0 +1,78 @@
+name: mercury-reports
+display_name: Mercury Reports
+description: >-
+  Posts a morning finance briefing from your Mercury workspace —
+  cash, AP, AR, runway, and anything unusual — to whichever Slack
+  channel the bot has been invited to, and answers Mercury
+  questions in Slack on @mention. Read-only by design, never moves
+  money.
+category: finance
+
+story:
+  hero: "Ask your Mercury account anything — right from Slack."
+  subheadline: >-
+    Each morning it posts cash, AP, AR, runway, and anything
+    unusual. @mention it any time for a follow-up — read-only by
+    design, never moves money.
+  steps:
+    - role: trigger
+      title: "7am hits, before the team's first standup."
+      body: >-
+        The cron fires Monday through Friday. No dashboard to open,
+        no spreadsheet to refresh.
+    - role: action
+      title: "It runs the read-only Mercury CLI."
+      body: >-
+        Pulls balances across every account, open AP and AR, the
+        trailing 90-day burn, and anything that moved overnight
+        outside the normal range.
+      catalog: mercury
+    - role: outcome
+      title: "Cash, AP, AR, runway — posted in Slack."
+      body: >-
+        IDs and amounts quoted verbatim. Under 2,500 characters.
+        @mention it back to dig into anything.
+      catalog: slack
+
+connectors:
+  - catalog: mercury
+    description: >-
+      The Mercury CLI. Mercury Reports runs read-only subcommands
+      (`accounts list`, `transactions list`, `invoices list`,
+      `treasury list`, etc.) to compose the morning briefing and
+      to answer Slack questions. Mutating subcommands are refused
+      by the agent — use a read-only token to enforce it at the
+      API layer too.
+    slot_descriptions:
+      MERCURY_API_KEY: >-
+        Mercury API token scoped to the workspace you want the
+        agent to read. Generate at
+        https://app.mercury.com/settings/tokens with **read-only**
+        permissions. Format: `secret-token:mercury_...`.
+    ui:
+      headline: "Connect your Mercury workspace."
+      blurb: >-
+        Paste a read-only Mercury API token. The agent uses it to
+        run `mercury` CLI commands against your workspace and
+        nothing else — it can look, but never move money.
+      done_note: "Read-only token connected"
+
+channels:
+  - catalog: slack
+    description: >-
+      The agent gets its own Slack bot. Invite it to whichever
+      channel you want the morning finance report in, and to any
+      channel where teammates should be able to @mention it for
+      ad-hoc Mercury questions.
+    ui:
+      headline: "Give Mercury Reports a Slack bot."
+      blurb: >-
+        The agent posts the morning briefing to every channel you
+        invite it to. Invite it to one focused finance channel,
+        or several — whatever matches how your team works.
+      done_note: "Bot ready — invite it to a channel"
+
+  - type: cron
+    cron: "0 7 * * 1-5"
+    timezone: America/Los_Angeles
+    description: "Fires the morning finance report at 7am Pacific, Monday through Friday — before the team's first standup."
