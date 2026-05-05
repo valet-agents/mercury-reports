@@ -8,6 +8,9 @@ description: >-
   money.
 category: finance
 
+example:
+  prompt: "What's our cash position this morning?"
+
 story:
   hero: "Ask your Mercury account anything — right from Slack."
   subheadline: >-
